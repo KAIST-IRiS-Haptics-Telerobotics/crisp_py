@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/utiasDSL/crisp_py/compare/v3.1.0...v3.2.0) (2026-01-27)
+
+
+### Features
+
+* add viser example to crisp_py and updated lbr config ([#64](https://github.com/utiasDSL/crisp_py/issues/64)) ([2fd04f6](https://github.com/utiasDSL/crisp_py/commit/2fd04f6edb7290bd4e666e2916366e50deaad9e2))
+
 ## [3.1.0](https://github.com/utiasDSL/crisp_py/compare/v3.0.0...v3.1.0) (2026-01-21)
 
 
