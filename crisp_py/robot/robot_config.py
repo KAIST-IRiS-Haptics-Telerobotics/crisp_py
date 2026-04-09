@@ -65,6 +65,7 @@ class RobotConfig:
     tf_retrieve_rate: float = 50.0
 
     use_prefix: bool = False
+    use_admittance_controller: bool = False
 
     def num_joints(self) -> int:
         """Returns the number of joints in the robot."""
