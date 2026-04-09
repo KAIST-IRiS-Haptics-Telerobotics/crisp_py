@@ -9,12 +9,14 @@ import rclpy
 import rclpy.executors
 import yaml
 from geometry_msgs.msg import PoseStamped, TwistStamped, WrenchStamped
+from std_msgs.msg import Float64MultiArray
 from numpy.typing import NDArray
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data, qos_profile_system_default
 from scipy.spatial.transform import Rotation, Slerp
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64MultiArray
 
 from crisp_py.config.path import find_config, list_configs_in_folder
 from crisp_py.control.controller_switcher import ControllerSwitcherClient
@@ -84,6 +86,9 @@ class Robot:
         self.joint_controller_parameters_client = ParametersClient(
             self.node, target_node=self.config.joint_trajectory_controller_name
         )
+        self.admittance_controller_parameters_client = ParametersClient(
+            self.node, target_node=self.config.cartesian_admittance_controller_name
+        )
 
         self._current_pose = None
         self._target_pose = None
@@ -105,8 +110,16 @@ class Robot:
         self._target_wrench_publisher = self.node.create_publisher(
             WrenchStamped, "target_wrench", qos_profile_system_default
         )
+        self._target_stiffness_publisher = self.node.create_publisher(
+            Float64MultiArray, self.config.target_stiffness_topic, qos_profile_system_default
+        )
         self._target_joint_publisher = self.node.create_publisher(
             JointState, self.config.target_joint_topic, qos_profile_system_default
+        )
+        self._target_admittance_stiffness_publisher = self.node.create_publisher(
+            Float64MultiArray,
+            self.config.target_admittance_stiffness_topic,
+            qos_profile_system_default,
         )
         if self.config.use_tf_pose:
             self._tf_pose = TfPose(
@@ -363,6 +376,8 @@ class Robot:
         self._target_pose = None
         self._target_joint = None
         self._target_wrench = None
+        # Note: stiffness is NOT reset here because it is latched by the controller
+        # and should persist across target resets
 
     def wait_until_ready(self, timeout: float = 10.0, check_frequency: float = 10.0):
         """Wait until the robot is ready for operation.
@@ -469,6 +484,60 @@ class Robot:
         assert len(torque) == 3, "Torque must be a 3D vector"
 
         self._target_wrench = {"force": np.array(force), "torque": np.array(torque)}
+
+    def set_stiffness(
+        self,
+        translational: List | NDArray | None = None,
+        rotational: List | NDArray | None = None,
+    ) -> None:
+        """Set the Cartesian stiffness for the impedance controller via topic.
+
+        This publishes a stiffness update to the controller's variable stiffness topic.
+        The value is latched by the controller -- it persists until a new value is published.
+        Requires the controller parameter variable_stiffness.enabled to be true.
+
+        Args:
+            translational: Stiffness values [kx, ky, kz] for position. If None, zeros are used.
+            rotational: Stiffness values [krx, kry, krz] for orientation. If None, zeros are used.
+        """
+        if translational is None:
+            translational = [0.0, 0.0, 0.0]
+        if rotational is None:
+            rotational = [0.0, 0.0, 0.0]
+
+        assert len(translational) == 3, "Translational stiffness must be a 3D vector"
+        assert len(rotational) == 3, "Rotational stiffness must be a 3D vector"
+
+        msg = Float64MultiArray()
+        msg.data = list(translational) + list(rotational)
+        self._target_stiffness_publisher.publish(msg)
+
+    def set_admittance_stiffness(
+        self,
+        translational: List | NDArray | None = None,
+        rotational: List | NDArray | None = None,
+    ) -> None:
+        """Set the admittance stiffness for the admittance controller via topic.
+
+        This publishes an admittance stiffness update to the controller's variable
+        admittance stiffness topic. The value is latched by the controller.
+        Requires the controller parameter variable_admittance_stiffness.enabled to be true.
+
+        Args:
+            translational: Stiffness values [kx, ky, kz] for position. If None, zeros are used.
+            rotational: Stiffness values [krx, kry, krz] for orientation. If None, zeros are used.
+        """
+        if translational is None:
+            translational = [0.0, 0.0, 0.0]
+        if rotational is None:
+            rotational = [0.0, 0.0, 0.0]
+
+        assert len(translational) == 3, "Translational stiffness must be a 3D vector"
+        assert len(rotational) == 3, "Rotational stiffness must be a 3D vector"
+
+        msg = Float64MultiArray()
+        msg.data = list(translational) + list(rotational)
+        self._target_admittance_stiffness_publisher.publish(msg)
 
     def _wrench_to_wrench_msg(self, wrench: dict) -> WrenchStamped:
         """Convert a wrench dictionary to a ROS WrenchStamped message.
