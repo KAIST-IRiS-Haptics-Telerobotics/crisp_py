@@ -20,18 +20,18 @@ print("Robot ready. Maintaining current position.")
 print()
 
 # High stiffness (current working values)
-print("Setting HIGH stiffness: translational=[900, 900, 900], rotational=[45, 45, 45]")
-robot.set_stiffness(translational=[900.0, 900.0, 900.0], rotational=[45.0, 45.0, 45.0])
-input("Press Enter to switch to MEDIUM stiffness...")
+# print("Setting HIGH stiffness: translational=[900, 900, 900], rotational=[45, 45, 45]")
+# robot.set_stiffness(translational=[900.0, 900.0, 900.0], rotational=[45.0, 45.0, 45.0])
+# input("Press Enter to switch to MEDIUM stiffness...")
 
-# Medium stiffness
-print("Setting MEDIUM stiffness: translational=[300, 300, 300], rotational=[15, 15, 15]")
-robot.set_stiffness(translational=[300.0, 300.0, 300.0], rotational=[15.0, 15.0, 15.0])
-input("Press Enter to switch to LOW stiffness...")
+# # Medium stiffness
+# print("Setting MEDIUM stiffness: translational=[300, 300, 300], rotational=[15, 15, 15]")
+# robot.set_stiffness(translational=[300.0, 300.0, 300.0], rotational=[15.0, 15.0, 15.0])
+# input("Press Enter to switch to LOW stiffness...")
 
 # Low stiffness
 print("Setting LOW stiffness: translational=[50, 50, 50], rotational=[5, 5, 5]")
-robot.set_stiffness(translational=[50.0, 50.0, 50.0], rotational=[5.0, 5.0, 5.0])
+robot.set_stiffness(translational=[5.0, 5.0, 5.0], rotational=[0.0, 0.0, 0.0])
 input("Press Enter to exit...")
 
 robot.shutdown()
