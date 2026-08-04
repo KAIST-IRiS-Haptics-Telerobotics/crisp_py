@@ -1,1 +1,4 @@
+# Franka FR3 with the Franka Hand attached (FrankaConfig default target_frame: fr3_hand_tcp).
+# Pairs with iris_bringup/config/controllers_fr3_gripper.yaml.
+# Bare flange -> fr3_flange.yaml. UMI gripper + D405 -> fr3_umi.yaml.
 robot_type: "franka"

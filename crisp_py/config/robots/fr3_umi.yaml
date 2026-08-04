@@ -1,0 +1,6 @@
+# Franka FR3 with the UMI gripper + RealSense D405.
+# Pairs with iris_bringup/config/controllers_fr3_umi.yaml (end_effector_frame: fr3_umi_camera).
+# The controllers servo and report poses IN THE CAMERA FRAME, so this preset must label poses
+# with the camera frame too, not fr3_hand_tcp.
+robot_type: "franka"
+target_frame: "fr3_umi_camera"

@@ -81,12 +81,21 @@ class RobotConfig:
 
         Returns:
             RobotConfig: Configured robot instance
+
+        Note:
+            The ``namespace`` key is a Robot-level setting, not a RobotConfig field
+            (see :meth:`crisp_py.robot.robot.Robot.from_yaml`). It is ignored here so
+            that namespaced presets such as ``fr3_left.yaml`` can still be loaded as a
+            plain config.
         """
         with open(yaml_path, "r") as f:
             data = yaml.safe_load(f) or {}
 
         # Apply overrides
         data.update(overrides)
+
+        # `namespace` is consumed by Robot.from_yaml, it is not a RobotConfig field.
+        data.pop("namespace", None)
 
         # Handle robot_type if specified
         if "robot_type" in data:
