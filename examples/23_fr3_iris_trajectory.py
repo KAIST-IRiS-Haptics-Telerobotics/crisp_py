@@ -47,8 +47,9 @@ from crisp_py.robot import make_robot  # noqa: E402
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--mode", choices=["nudge", "figure8"], default="nudge",
-                   help="nudge: small relative move, the smallest thing that exercises the full "
+    p.add_argument("--mode", choices=["home", "nudge", "figure8"], default="nudge",
+                   help="home: move to the start configuration and stop, nothing else. "
+                        "nudge: small relative move, the smallest thing that exercises the full "
                         "path. figure8: the y-z figure eight. Default: nudge.")
     p.add_argument("--robot-config", default="fr3_flange",
                    help="crisp_py robot preset. fr3_flange (bare flange, fr3_link8), "
@@ -75,6 +76,9 @@ def confirm(args, robot):
     print(f"  current pose: {np.round(robot.end_effector_pose.position, 4).tolist()}")
     if args.mode == "figure8":
         print(f"  will move to: {args.center}, then a {args.radius} m figure eight")
+    elif args.mode == "home":
+        print(f"  will move   : to the home configuration "
+              f"{np.round(robot.config.home_config, 4).tolist()} - a LARGE sweep")
     else:
         print(f"  will move   : {args.nudge_delta} m in +z, then back")
     if args.yes:
@@ -98,6 +102,17 @@ def main():
     if not confirm(args, robot):
         print("aborted.")
         robot.shutdown(); rclpy.try_shutdown(); return 1
+
+    if args.mode == "home":
+        # home() switches to joint_trajectory_controller itself; no cartesian controller needed.
+        print("moving to the start configuration (large motion)...")
+        robot.home(blocking=True)
+        print(f"joints now : {np.round(robot.joint_values, 4).tolist()}")
+        print(f"ee now     : {np.round(robot.end_effector_pose.position, 5).tolist()}")
+        robot.shutdown()
+        rclpy.try_shutdown()
+        print("at start position.")
+        return 0
 
     if args.home:
         print("homing (large motion)...")
