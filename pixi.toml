@@ -85,6 +85,15 @@ pytest = "*"  # for testing
 crisp_python = { path = ".", editable = true }
 # crisp_python = "1.0.x"  # if added from pypi
 
+# IRiS FR3 rig. Runs against the iris-panda-ros2 humble bring-up (franka_ros2 v1.0.0 +
+# libfranka 0.13.6 - the only pairing that speaks the FCI server version 7 of robot system
+# 5.6.0). Defaults to --mode nudge and the fr3_flange preset; add --mode figure8 for the full
+# trajectory. Writes a PNG, never opens a window.
+# Use the `humble` environment: a jazzy pixi run restarts the ros2 daemon as Jazzy and breaks
+# every Humble CLI on the same domain.
+[feature.crisp-py.tasks]
+fr3-trajectory = "python examples/23_fr3_iris_trajectory.py"
+
 [feature.extra.pypi-dependencies]
 rich = "*"  # For nice prints
 matplotlib = "*"  # to do some plots
