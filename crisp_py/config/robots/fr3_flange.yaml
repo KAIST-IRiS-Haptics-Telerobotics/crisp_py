@@ -1,0 +1,4 @@
+# Franka FR3 with a BARE FLANGE (no end effector mounted).
+# Pairs with iris_bringup/config/controllers_fr3.yaml (end_effector_frame: fr3_link8).
+robot_type: "franka"
+target_frame: "fr3_link8"

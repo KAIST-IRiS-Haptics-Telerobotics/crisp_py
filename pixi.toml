@@ -39,10 +39,25 @@ jazzy-viser = { features = ["jazzy", "viser", "crisp-py", "extra", "dev"] }
 humble-clean = { features = ["humble"] }
 
 # humble
+# NOTE the second channel. The workspace-level "fast.prefix.dev/conda-forge" mirror is
+# missing eigen-abi-devel and pcl >=1.15.1, which the py312 build of
+# ros-humble-pcl-conversions (pulled in by ros-humble-desktop) requires. Without
+# prefix.dev/conda-forge here the solver can only take the py311 pcl-conversions, which
+# drags the whole env onto ros2-distro-mutex 0.6 -> control_msgs 4.7.0, sensor_msgs 4.2.4.
+# A robot host on the 0.9 generation publishes control_msgs 4.9.0, and CycloneDDS then
+# fails to deserialise it: "invalid data size" / "string data is not null-terminated"
+# (serdata.cpp:384) on every FollowJointTrajectory action.
 [feature.humble]
-channels = ["https://prefix.dev/robostack-humble"]
+channels = ["https://prefix.dev/robostack-humble", "https://prefix.dev/conda-forge"]
 
 [feature.humble.dependencies]
+python = ">=3.12,<3.13"
+# numpy MUST be capped. The py312 robostack-humble packages are built against the generic
+# numpy-2 ABI and impose no upper bound, so the conda solve floats to 2.5.1 - but crisp-python
+# requires numpy<=2.3, and pixi resolves conda FIRST and hands that pin to the pypi solver,
+# which then fails with "crisp-python==3.6.0 depends on numpy<=2.3 and numpy==2.5.1".
+# The old py311 generation never hit this because it pinned numpy 1.26.4 itself.
+numpy = ">=2.0,<=2.3.0"
 ros-humble-desktop = "*"
 colcon-common-extensions = "*"
 ros-humble-ros2-control = "*"
@@ -84,6 +99,15 @@ pytest = "*"  # for testing
 [feature.crisp-py.pypi-dependencies]
 crisp_python = { path = ".", editable = true }
 # crisp_python = "1.0.x"  # if added from pypi
+
+# IRiS FR3 rig. Runs against the iris-panda-ros2 humble bring-up (franka_ros2 v1.0.0 +
+# libfranka 0.13.6 - the only pairing that speaks the FCI server version 7 of robot system
+# 5.6.0). Defaults to --mode nudge and the fr3_flange preset; add --mode figure8 for the full
+# trajectory. Writes a PNG, never opens a window.
+# Use the `humble` environment: a jazzy pixi run restarts the ros2 daemon as Jazzy and breaks
+# every Humble CLI on the same domain.
+[feature.crisp-py.tasks]
+fr3-trajectory = "python examples/23_fr3_iris_trajectory.py"
 
 [feature.extra.pypi-dependencies]
 rich = "*"  # For nice prints
